@@ -348,9 +348,17 @@ public class HudStatusPanel {
         mHandler.post(mPollRunnable);
     }
 
+    private int mLogThrottle = 0;
+
     private void updateData() {
         try {
             int[] data = Menu.GetHudStatusData();
+            String gameName = Menu.GetActiveGameName();
+
+            if (gameName != null && !gameName.isEmpty() && !gameName.equals("WAITING...")) {
+                mTvTitle.setText("HUD STATUS • " + gameName);
+            }
+
             if (data != null && data.length >= 5) {
                 int team = data[0];
                 int enemy = data[1];
@@ -358,6 +366,7 @@ public class HudStatusPanel {
                 int total = data[3];
                 int isLibLoaded = data[4];
                 int localHp = (data.length >= 6) ? data[5] : 100;
+                int gameEngine = (data.length >= 7) ? data[6] : 0;
 
                 if (isLibLoaded == 1) {
                     mTvStatusIndicator.setTextColor(COLOR_TEAM);
@@ -374,8 +383,18 @@ public class HudStatusPanel {
 
                 // Update compact display
                 mTvCompactText.setText("🟢 " + team + "  🔴 " + enemy + "  🤖 " + bot + "  👥 " + total);
+
+                // Periodic debug logging to /sdcard/Documents/mod_menu_debug.log (every 4 seconds / 16 cycles)
+                mLogThrottle++;
+                if (mLogThrottle % 16 == 0) {
+                    Preferences.LogToDebugFile("HUD", "Game=" + gameName + " | LibLoaded=" + isLibLoaded + 
+                        " | Team=" + team + " | Enemy=" + enemy + " | Bot=" + bot + " | Total=" + total);
+                }
             }
-        } catch (UnsatisfiedLinkError | Exception ignored) {
+        } catch (UnsatisfiedLinkError e) {
+            Preferences.LogToDebugFile("HUD_ERROR", "UnsatisfiedLinkError: " + e.getMessage());
+        } catch (Exception e) {
+            Preferences.LogToDebugFile("HUD_ERROR", "Exception: " + e.getMessage());
         }
     }
 

@@ -125,6 +125,8 @@ public class Menu {
 
     public static native String GetHudStatusFormatted();
 
+    public static native String GetActiveGameName();
+
     //Here we write the code for our Menu
     // Reference: https://www.androidhive.info/2016/11/android-floating-widget-like-facebook-chat-head/
     public Menu(Context context) {

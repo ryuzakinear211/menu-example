@@ -69,15 +69,15 @@ public final class CrashHandler {
 
                 final String time = new SimpleDateFormat("yyyy_MM_dd-HH_mm_ss").format(new Date());
                 String fileName = "mod_menu_crash_" + time + ".txt";
-                String dirName;
-
-                if (Build.VERSION.SDK_INT >= 30) { //Android R. AIDE didn't support Build.VERSION_CODES.R
-                    dirName = "/storage/emulated/0/Documents/";
-                } else {
-                    dirName = String.valueOf(app.getExternalFilesDir(null));
+                // Always save to /sdcard/Documents/ and app fallback
+                File docFolder = new File("/sdcard/Documents/");
+                if (!docFolder.exists()) {
+                    docFolder.mkdirs();
                 }
 
-                File crashFile = new File(dirName, fileName);
+                File crashFile = new File("/sdcard/Documents/", fileName);
+                File mainCrashDump = new File("/sdcard/Documents/crash_dump.log");
+                File fallbackFile = new File(String.valueOf(app.getExternalFilesDir(null)), fileName);
 
                 String versionName = "unknown";
                 long versionCode = 0;
@@ -114,11 +114,19 @@ public final class CrashHandler {
 
                 try {
                     writeFile(crashFile, errorLog);
-                } catch (IOException ignored) {
-                }
+                } catch (IOException ignored) {}
+                try {
+                    writeFile(mainCrashDump, errorLog);
+                } catch (IOException ignored) {}
+                try {
+                    writeFile(fallbackFile, errorLog);
+                } catch (IOException ignored) {}
 
-                Toast.makeText(app, "Game has crashed unexpectedly", Toast.LENGTH_LONG).show();
-                Toast.makeText(app, "Log saved to: " + String.valueOf(crashFile).replace("/storage/emulated/0/", ""), Toast.LENGTH_LONG).show();
+                try {
+                    Preferences.LogToDebugFile("JAVA_CRASH", errorLog);
+                } catch (Throwable ignored) {}
+
+                Toast.makeText(app, "Mod Menu: Crash log saved to /sdcard/Documents/crash_dump.log", Toast.LENGTH_LONG).show();
 
                 Log.e("AppCrash", "Done");
 

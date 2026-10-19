@@ -23,6 +23,7 @@ public class Preferences {
     private static final boolean DEFAULT_BOOLEAN_VALUE = false;
 
     public static native void Changes(Context con, int fNum, String fName, int i, boolean bool, String str);
+    public static native void LogToDebugFile(String tag, String msg);
 
     public static void changeFeatureInt(String featureName, int featureNum, int value) {
         Preferences.with(context).writeInt(featureNum, value);
